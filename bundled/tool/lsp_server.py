@@ -108,21 +108,55 @@ def did_close(params: lsp.DidCloseTextDocumentParams) -> None:
     LSP_SERVER.publish_diagnostics(document.uri, [])
 
 
-def _linting_helper(document: workspace.Document) -> list[lsp.Diagnostic]:
-    diagnostics: list[lsp.Diagnostic] = []
-    lines = document.lines  # Assuming this method exists to get the document's text as a list of lines
-    for i, line in enumerate(lines):
-        if re.match(r'\s*while .*[^:]\s*$', line) or re.match(r'\s*for .*[^:]\s*$', line):
-            position = lsp.Position(line=i, character=len(line)-1)  # Point to the end of the line
+"""
+COMPUTER SYSTEMS SECURITY RELEVANT PORTION
+
+TODO Make a longer list of Bidi Characters theres a lot of them the ones below are from the paper
+TODO Figure out how to ouput the original code with Bidi Characters removed to the user
+TODO Make better messages
+TODO Maybe figure out what the stuff above does like OPEN CLOSE and SAVE
+TODO Maybe make a regex for the characters instead of looking through a dictionary I think the paper has a regex in the repo
+TODO Apply this for commenting out attacks 
+TODO Apply this for early return attacks 
+TODO Apply this for homoglyphic attacks
+TODO Apply this for invisible function attacks
+TODO Publish this extension publically before the due date that would be a flex for the prof and for recruiters 
+"""
+
+BIDI_UNICODE_CHARS = {
+    "\u202A": "LRE",
+    "\u202B": "RLE",
+    "\u202D": "LRO",
+    "\u202E": "RLO",
+    "\u2066": "LRI",
+    "\u2067": "RLI",
+    "\u2068": "FSI",
+    "\u202C": "PDF",
+    "\u2069": "PDI",
+}
+
+def check_bidi_unicode(line: str, line_num: int) -> list[lsp.Diagnostic]:
+    diagnostics = []
+    for char, name in BIDI_UNICODE_CHARS.items():
+        index = line.find(char)
+        while index != -1:
+            position = lsp.Position(line=line_num, character=index)
             diagnostic = lsp.Diagnostic(
                 range=lsp.Range(start=position, end=position),
-                message="Lol you forgot a colon",
-                severity=lsp.DiagnosticSeverity.Warning,
+                message=f"Bidi Unicode character {name} detected",
+                severity=lsp.DiagnosticSeverity.Error,
                 source=TOOL_MODULE
             )
             diagnostics.append(diagnostic)
+            index = line.find(char, index + 1)  # Find next occurrence of char
     return diagnostics
 
+def _linting_helper(document: workspace.Document) -> list[lsp.Diagnostic]:
+    diagnostics: list[lsp.Diagnostic] = []
+    lines = document.lines
+    for i, line in enumerate(lines):
+        diagnostics.extend(check_bidi_unicode(line, i))
+    return diagnostics
 
 
 # TODO: If your linter outputs in a known format like JSON, then parse
