@@ -1,5 +1,17 @@
 # Template for VS Code python tools extensions
 
+## Tasks
+- TODO Make a longer list of Bidi Characters theres a lot of them the ones below are from the paper
+- TODO Figure out how to ouput the original code with Bidi Characters removed to the user
+- TODO Make better messages
+- TODO Maybe figure out what the stuff above does like OPEN CLOSE and SAVE
+- TODO Maybe make a regex for the characters instead of looking through a dictionary I think the paper has a regex in the repo
+- TODO Apply this for commenting out attacks 
+- TODO Apply this for early return attacks 
+- TODO Apply this for homoglyphic attacks
+- TODO Apply this for invisible function attacks
+- TODO Publish this extension publically before the due date that would be a flex for the prof and for recruiters 
+
 ## Requirements
 
 1. VS Code 1.64.0 or greater

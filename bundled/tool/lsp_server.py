@@ -135,27 +135,62 @@ BIDI_UNICODE_CHARS = {
     "\u2069": "PDI",
 }
 
-def check_bidi_unicode(line: str, line_num: int) -> list[lsp.Diagnostic]:
+def _check_bidi_unicode(line: str, line_num: int) -> list[lsp.Diagnostic]:
+    """Checks for Unicode characters defined above"""
+    # Create an empty list to store diagnostics
     diagnostics = []
+    # Iterate through each Bidi Unicode character and its name
     for char, name in BIDI_UNICODE_CHARS.items():
+        # Find the index of the character in the current line
         index = line.find(char)
+        # Continue searching for occurrences of the character in the line
         while index != -1:
+            # Create a position object for the character's location (not really sure what this does)
             position = lsp.Position(line=line_num, character=index)
+            # Create a diagnostic object for the character occurrence
             diagnostic = lsp.Diagnostic(
                 range=lsp.Range(start=position, end=position),
                 message=f"Bidi Unicode character {name} detected",
                 severity=lsp.DiagnosticSeverity.Error,
                 source=TOOL_MODULE
             )
+            # Append the diagnostic to the diagnostics list
             diagnostics.append(diagnostic)
+            # Find the next occurrence of the character, if any
             index = line.find(char, index + 1)  # Find next occurrence of char
+
+    # Return the list of diagnostics for this line
+    return diagnostics
+
+
+# DO NOT WORRY ABOuT THIS FUNCTION IT WILL BE DELETED
+# this is to show what i mean about us making our own functions and putting them in the for loop in _liniting_helper
+def _check_missing_colons(line: str, line_num: int) -> list[lsp.Diagnostic]:
+    diagnostics = []
+    if re.match(r'\s*while [^:]*$|\s*for [^:]*$', line):
+        position = lsp.Position(line=line_num, character=len(line) - 1)  # Point to the end of the line
+        diagnostic = lsp.Diagnostic(
+            range=lsp.Range(start=position, end=position),
+            message="Missing colon at the end of loop statement",
+            severity=lsp.DiagnosticSeverity.Warning,
+            source=TOOL_MODULE
+        )
+        diagnostics.append(diagnostic)
     return diagnostics
 
 def _linting_helper(document: workspace.Document) -> list[lsp.Diagnostic]:
+    # diagnostics are the messages that appear they are objects that are put into a list and returned at the end here
     diagnostics: list[lsp.Diagnostic] = []
+    # get the lines of the document
     lines = document.lines
+    # iterate through lines
     for i, line in enumerate(lines):
-        diagnostics.extend(check_bidi_unicode(line, i))
+        # the extend function is appending the output diagonistc from check_bidi_unicode to the list
+        # this is how we should implement our functions
+        diagnostics.extend(_check_bidi_unicode(line, i))
+        diagnostics.extend(_check_missing_colons(line, i))
+
+    # return the list
     return diagnostics
 
 
