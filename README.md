@@ -1,15 +1,5 @@
 # Template for VS Code python tools extensions
 
-This is a template repository to get you started on building a VS Code extension for your favorite python tool. It could be a linter, formatter, or code analysis, or all of those together. This template will give you the basic building blocks you need to build a VS Code extension for it.
-
-## Programming Languages and Frameworks
-
-The extension template has two parts, the extension part and language server part. The extension part is written in TypeScript, and language server part is written in Python over the [_pygls_][pygls] (Python language server) library.
-
-For the most part you will be working on the python part of the code when using this template. You will be integrating your tool with the extension part using the [Language Server Protocol](https://microsoft.github.io/language-server-protocol). [_pygls_][pygls] currently works on the [version 3.16 of LSP](https://microsoft.github.io/language-server-protocol/specifications/specification-3-16/).
-
-The TypeScript part handles working with VS Code and its UI. The extension template comes with few settings pre configured that can be used by your tool. If you need to add new settings to support your tool, you will have to work with a bit of TypeScript. The extension has examples for few settings that you can follow. You can also look at extensions developed by our team for some of the popular tools as reference.
-
 ## Requirements
 
 1. VS Code 1.64.0 or greater
@@ -22,8 +12,15 @@ You should know to create and work with python virtual environments.
 
 ## Getting Started
 
-1. Use this [template to create your repo](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template).
-1. Check-out your repo locally on your development machine.
+### Saad's Way
+1. You should just be able to clone to repo and as long as you have the requirments above it'll be good to go
+1. Go to `extension.ts` and press `F5` or go `Run -> Start Debugging` and a new window will popup
+1. If it doesn't work off the jump try running `npm install` if that doesnt work then try the stuff below but **do not push files that are not working as the commands below will edit the repo files**
+1. Once the new window is running you will notice in the original window a file called `_debug_server.py` will open with a breakpoint set, just hit continue and then the extension will begin to lint and you can see diagnostics be outputted to `PROBLEMS` in the terminal
+
+### Try the steps below if things fail
+
+1. [Orignal Documentation](https://github.com/microsoft/vscode-python-tools-extension-template/tree/main)
 1. Create and activate a python virtual environment for this project in a terminal. Be sure to use the minimum version of python for your tool. This template was written to work with python 3.7 or greater.
 1. Install `nox` in the activated environment: `python -m pip install nox`.
 1. Add your favorite tool to `requirements.in`
@@ -36,23 +33,6 @@ You should know to create and work with python virtual environments.
 1. Go to https://marketplace.visualstudio.com/vscode and create a publisher account if you don't already have one.
     1. Use the published name in `package.json` by replacing `<my-publisher>` with the name you registered in the marketplace.
 
-## Features of this Template
-
-After finishing the getting started part, this template would have added the following. Assume `<pytool-module>` was replaced with `mytool`, and `<pytool-display-name>` with`My Tool`:
-
-1. A command `My Tool: Restart Server` (command Id: `mytool.restart`).
-1. Following setting:
-    - `mytool.args`
-    - `mytool.path`
-    - `mytool.importStrategy`
-    - `mytool.interpreter`
-    - `mytool.showNotification`
-1. Following triggers for extension activation:
-    - On Language `python`.
-    - On File with `.py` extension found in the opened workspace.
-1. Following commands are registered:
-    - `mytool.restart`: Restarts the language server.
-1. Output Channel for logging `Output` > `My Tool`
 
 ## Adding features from your tool
 
@@ -105,10 +85,6 @@ If you have installed the test requirements you should be able to see the tests 
 
 You can also run all tests using `nox --session tests` command.
 
-## Linting
-
-Run `nox --session lint` to run linting on both Python and TypeScript code. Please update the nox file if you want to use a different linter and formatter.
-
 ## Packaging and Publishing
 
 1. Update various fields in `package.json`. At minimum, check the following fields and update them accordingly. See [extension manifest reference](https://code.visualstudio.com/api/references/extension-manifest) to add more fields:
@@ -127,32 +103,3 @@ Run `nox --session lint` to run linting on both Python and TypeScript code. Plea
 
 To do this from the command line see here <https://code.visualstudio.com/api/working-with-extensions/publishing-extension>
 
-## Upgrading Dependencies
-
-Dependabot yml is provided to make it easy to setup upgrading dependencies in this extension. Be sure to add the labels used in the dependabot to your repo.
-
-To manually upgrade your local project:
-
-1. Create a new branch
-1. Run `npm update` to update node modules.
-1. Run `nox --session setup` to upgrade python packages.
-
-## Troubleshooting
-
-### Changing path or name of `lsp_server.py` something else
-
-If you want to change the name of `lsp_server.py` to something else, you can. Be sure to update `constants.ts` and `src\test\python_tests\lsp_test_client\session.py`.
-
-Also make sure that the inserted paths in `lsp_server.py` are pointing to the right folders to pick up the dependent packages.
-
-### Module not found errors
-
-This can occurs if `bundled/libs` is empty. That is the folder where we put your tool and other dependencies. Be sure to follow the build steps need for creating and bundling the required libs.
-
-Common one is [_pygls_][pygls] module not found.
-
-# TODO: The maintainer of this repo has not yet edited this file
-
-**Repo Owner** Make sure you update this. As a repository owner you will need to update this file with specific instructions for your extension.
-
-[pygls]: https://github.com/openlawlibrary/pygls
