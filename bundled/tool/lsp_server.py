@@ -11,7 +11,7 @@ import re
 import sys
 import sysconfig
 import traceback
-from typing import Any, Optional, Sequence
+from typing import Any, Optional, Sequence, Callable, Dict, List, Union
 
 
 # **********************************************************
@@ -109,12 +109,20 @@ def did_close(params: lsp.DidCloseTextDocumentParams) -> None:
 
 
 def _linting_helper(document: workspace.Document) -> list[lsp.Diagnostic]:
-    # TODO: Determine if your tool supports passing file content via stdin.
-    # If you want to support linting on change then your tool will need to
-    # support linting over stdin to be effective. Read, and update
-    # _run_tool_on_document and _run_tool functions as needed for your project.
-    result = _run_tool_on_document(document)
-    return _parse_output_using_regex(result.stdout) if result.stdout else []
+    diagnostics: list[lsp.Diagnostic] = []
+    lines = document.lines  # Assuming this method exists to get the document's text as a list of lines
+    for i, line in enumerate(lines):
+        if re.match(r'\s*while .*[^:]\s*$', line) or re.match(r'\s*for .*[^:]\s*$', line):
+            position = lsp.Position(line=i, character=len(line)-1)  # Point to the end of the line
+            diagnostic = lsp.Diagnostic(
+                range=lsp.Range(start=position, end=position),
+                message="Lol you forgot a colon",
+                severity=lsp.DiagnosticSeverity.Warning,
+                source=TOOL_MODULE
+            )
+            diagnostics.append(diagnostic)
+    return diagnostics
+
 
 
 # TODO: If your linter outputs in a known format like JSON, then parse
@@ -173,6 +181,7 @@ def _get_severity(*_codes: list[str]) -> lsp.DiagnosticSeverity:
     # TODO: All reported issues from linter are treated as warning.
     # change it as appropriate for your linter.
     return lsp.DiagnosticSeverity.Warning
+
 
 
 # **********************************************************
