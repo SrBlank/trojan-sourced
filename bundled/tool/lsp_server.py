@@ -111,14 +111,8 @@ def did_close(params: lsp.DidCloseTextDocumentParams) -> None:
 """
 COMPUTER SYSTEMS SECURITY RELEVANT PORTION
 
-TODO Make a longer list of Bidi Characters theres a lot of them the ones below are from the paper
 TODO Figure out how to ouput the original code with Bidi Characters removed to the user
-# TODO Make better messages - DONE
 TODO Maybe figure out what the stuff above does like OPEN CLOSE and SAVE
-# TODO Apply this for commenting out attacks - DONE
-# TODO Apply this for early return attacks - DONE
-# TODO Apply this for homoglyphic attacks
-# TODO Apply this for invisible function attacks
 TODO Publish this extension publically before the due date that would be a flex for the prof and for recruiters 
 """
 BIDI_UNICODE_CHARS = {
@@ -147,17 +141,6 @@ INVISIBLE_UNICODE_CHARS = {
     "\u2064": "Invisible Plus (IP)",
     "\u2062": "Invisible Times (IT)"
 }
-
-
-NORMALIZED_UNICODE_CHARS = [
-    "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t",
-    "u", "v", "w", "x", "y", "z", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", 
-    "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "1", "2", "3", "4", "5", "6", "7", "8",
-    "9", "!", "@", "#", "$", "%", "^", "&", "*", "(", ")", "-", "=", "_", "+", "`", "~", "[", "]", "{",
-    "}", ";", ":", "\"", "\'", ",", ".", "/", "<", ">", "?", "\\", "|", " "
-]
-
-
 
 def _check_bidi_unicode(line: str, line_num: int) -> list[lsp.Diagnostic]:
     """Checks for Unicode characters defined above"""
@@ -199,7 +182,7 @@ def _check_invisible_unicode_(line: str, line_num: int) -> list[lsp.Diagnostic]:
             position = lsp.Position(line=line_num, character=index)
             diagnostic = lsp.Diagnostic(
                 range=lsp.Range(start=position, end=position),
-                message=f"Trojan Source Invisible Attack Detected.\nUnicode Character {name} detected. An attacker may be trying to disturb code logic.",
+                message=f"Trojan Source Invisible Attack Detected\nUnicode Character {name} detected. An attacker may be trying to disturb code logic.",
                 severity=lsp.DiagnosticSeverity.Warning,
                 source=TOOL_MODULE
             )
