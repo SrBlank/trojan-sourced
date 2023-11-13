@@ -113,16 +113,14 @@ COMPUTER SYSTEMS SECURITY RELEVANT PORTION
 
 TODO Make a longer list of Bidi Characters theres a lot of them the ones below are from the paper
 TODO Figure out how to ouput the original code with Bidi Characters removed to the user
-TODO Make better messages
+# TODO Make better messages - DONE
 TODO Maybe figure out what the stuff above does like OPEN CLOSE and SAVE
-TODO Maybe make a regex for the characters instead of looking through a dictionary I think the paper has a regex in the repo
-TODO Apply this for commenting out attacks 
-TODO Apply this for early return attacks 
+# TODO Apply this for commenting out attacks - DONE
+# TODO Apply this for early return attacks - DONE
 TODO Apply this for homoglyphic attacks
 TODO Apply this for invisible function attacks
 TODO Publish this extension publically before the due date that would be a flex for the prof and for recruiters 
 """
-
 BIDI_UNICODE_CHARS = {
     "\u202A": "LRE",
     "\u202B": "RLE",
@@ -137,27 +135,32 @@ BIDI_UNICODE_CHARS = {
 
 def _check_bidi_unicode(line: str, line_num: int) -> list[lsp.Diagnostic]:
     """Checks for Unicode characters defined above"""
-    # Create an empty list to store diagnostics
     diagnostics = []
-    # Iterate through each Bidi Unicode character and its name
+    clean_line = line
     for char, name in BIDI_UNICODE_CHARS.items():
-        # Find the index of the character in the current line
         index = line.find(char)
-        # Continue searching for occurrences of the character in the line
         while index != -1:
-            # Create a position object for the character's location (not really sure what this does)
+            # Check what kind of attack 
+            single_comment_index = line.find('#')
+            return_index = line.find("return")
+            multi_comment_index = line.find("\'\'\'")
+            if single_comment_index != -1 or multi_comment_index != -1:
+                msg = f"Trojan Source Comment Out Attack Detected.\nBidi Unicode Chracter {name} detected. An attacker has introduced a Bidirectional Unicode character to comment code and disturb logic."
+            elif return_index != -1:
+                msg = f"Trojan Source Early Return Attack Detected.\nBidi Unicode Character {name} detected. An attacker has introduced a Bidirectional Unicode character to return your code early."
+            else:
+                msg = f"Bidi Unicode Character {name} detected.\nAn attacker as introduced a Bidirectional Unicode Character to disturb code logic."
+
             position = lsp.Position(line=line_num, character=index)
-            # Create a diagnostic object for the character occurrence
+            clean_line = clean_line[:index] + clean_line[index+1:]
             diagnostic = lsp.Diagnostic(
                 range=lsp.Range(start=position, end=position),
-                message=f"Bidi Unicode character {name} detected",
+                message=msg,
                 severity=lsp.DiagnosticSeverity.Error,
                 source=TOOL_MODULE
             )
-            # Append the diagnostic to the diagnostics list
             diagnostics.append(diagnostic)
-            # Find the next occurrence of the character, if any
-            index = line.find(char, index + 1)  # Find next occurrence of char
+            index = line.find(char, index + 1) 
 
     # Return the list of diagnostics for this line
     return diagnostics
