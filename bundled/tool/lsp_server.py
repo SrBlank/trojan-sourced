@@ -117,8 +117,8 @@ TODO Figure out how to ouput the original code with Bidi Characters removed to t
 TODO Maybe figure out what the stuff above does like OPEN CLOSE and SAVE
 # TODO Apply this for commenting out attacks - DONE
 # TODO Apply this for early return attacks - DONE
-TODO Apply this for homoglyphic attacks
-TODO Apply this for invisible function attacks
+# TODO Apply this for homoglyphic attacks
+# TODO Apply this for invisible function attacks
 TODO Publish this extension publically before the due date that would be a flex for the prof and for recruiters 
 """
 BIDI_UNICODE_CHARS = {
@@ -133,10 +133,35 @@ BIDI_UNICODE_CHARS = {
     "\u2069": "PDI",
 }
 
+INVISIBLE_UNICODE_CHARS = {
+    "\u200B": "Zero-Width Space ZWSP)",
+    "\u200C": "Zero-Width Non-Joiner (ZWNJ)",
+    "\u200D": "Zero-Width Joiner (ZWJ)",
+    "\uFEFF": "Zero-Width Non-Breaking Space (ZWNBSP)",
+    "\u00AD": "Soft Hyphen (SHY)",
+    "\u200E": "Left-To-Right Mark (LTRM)",
+    "\u200F": "Right-To-Left Mark (RTLM)",
+    "\u2060": "Word Joiner (WJ)",
+    "\u2061": "Function Application (FAP)",
+    "\u2063": "Invisible Separator (IS)",
+    "\u2064": "Invisible Plus (IP)",
+    "\u2062": "Invisible Times (IT)"
+}
+
+
+NORMALIZED_UNICODE_CHARS = [
+    "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t",
+    "u", "v", "w", "x", "y", "z", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", 
+    "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "1", "2", "3", "4", "5", "6", "7", "8",
+    "9", "!", "@", "#", "$", "%", "^", "&", "*", "(", ")", "-", "=", "_", "+", "`", "~", "[", "]", "{",
+    "}", ";", ":", "\"", "\'", ",", ".", "/", "<", ">", "?", "\\", "|", " "
+]
+
+
+
 def _check_bidi_unicode(line: str, line_num: int) -> list[lsp.Diagnostic]:
     """Checks for Unicode characters defined above"""
     diagnostics = []
-    clean_line = line
     for char, name in BIDI_UNICODE_CHARS.items():
         index = line.find(char)
         while index != -1:
@@ -151,8 +176,8 @@ def _check_bidi_unicode(line: str, line_num: int) -> list[lsp.Diagnostic]:
             else:
                 msg = f"Bidi Unicode Character {name} detected.\nAn attacker as introduced a Bidirectional Unicode Character to disturb code logic."
 
+            # Create diagnostic
             position = lsp.Position(line=line_num, character=index)
-            clean_line = clean_line[:index] + clean_line[index+1:]
             diagnostic = lsp.Diagnostic(
                 range=lsp.Range(start=position, end=position),
                 message=msg,
@@ -162,36 +187,37 @@ def _check_bidi_unicode(line: str, line_num: int) -> list[lsp.Diagnostic]:
             diagnostics.append(diagnostic)
             index = line.find(char, index + 1) 
 
+    return diagnostics
+
+
+def _check_invisible_unicode_(line: str, line_num: int) -> list[lsp.Diagnostic]:
+    """Checks for Unicode characters defined above"""
+    diagnostics = []
+    for char, name in INVISIBLE_UNICODE_CHARS.items():
+        index = line.find(char)
+        while index != -1:
+            position = lsp.Position(line=line_num, character=index)
+            diagnostic = lsp.Diagnostic(
+                range=lsp.Range(start=position, end=position),
+                message=f"Trojan Source Invisible Attack Detected.\nUnicode Character {name} detected. An attacker may be trying to disturb code logic.",
+                severity=lsp.DiagnosticSeverity.Warning,
+                source=TOOL_MODULE
+            )
+            diagnostics.append(diagnostic)
+            index = line.find(char, index + 1) 
+
     # Return the list of diagnostics for this line
     return diagnostics
 
-
-# DO NOT WORRY ABOuT THIS FUNCTION IT WILL BE DELETED
-# this is to show what i mean about us making our own functions and putting them in the for loop in _liniting_helper
-def _check_missing_colons(line: str, line_num: int) -> list[lsp.Diagnostic]:
-    diagnostics = []
-    if re.match(r'\s*while [^:]*$|\s*for [^:]*$', line):
-        position = lsp.Position(line=line_num, character=len(line) - 1)  # Point to the end of the line
-        diagnostic = lsp.Diagnostic(
-            range=lsp.Range(start=position, end=position),
-            message="Missing colon at the end of loop statement",
-            severity=lsp.DiagnosticSeverity.Warning,
-            source=TOOL_MODULE
-        )
-        diagnostics.append(diagnostic)
-    return diagnostics
 
 def _linting_helper(document: workspace.Document) -> list[lsp.Diagnostic]:
     # diagnostics are the messages that appear they are objects that are put into a list and returned at the end here
     diagnostics: list[lsp.Diagnostic] = []
     # get the lines of the document
     lines = document.lines
-    # iterate through lines
     for i, line in enumerate(lines):
-        # the extend function is appending the output diagonistc from check_bidi_unicode to the list
-        # this is how we should implement our functions
         diagnostics.extend(_check_bidi_unicode(line, i))
-        diagnostics.extend(_check_missing_colons(line, i))
+        diagnostics.extend(_check_invisible_unicode_(line, i))
 
     # return the list
     return diagnostics
