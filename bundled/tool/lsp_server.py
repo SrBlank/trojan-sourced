@@ -138,6 +138,45 @@ INVISIBLE_UNICODE_CHARS = {
     "\u2062": "Invisible Times (IT)"
 }
 
+HOMOGLYPH_UNICODE_CHARS = {
+    # Greek Alphabet
+    "\u037F": "Greek Capital Letter Yot",
+    "\u0391": "Greek Capital Letter Alpha",
+    "\u0392": "Greek Capital Letter Beta",
+    "\u0395": "Greek Capital Letter Epsilon",
+    "\u0396": "Greek Capital Letter Zeta",
+    "\u0397": "Greek Capital Letter Eta",
+    "\u0399": "Greek Capital Letter Iota",
+    "\u039A": "Greek Capital Letter Kappa",
+    "\u039C": "Greek Capital Letter Mu",
+    "\u039D": "Greek Capital Letter Nu",
+    "\u039F": "Greek Capital Letter Omicron",
+    "\u03A1": "Greek Capital Letter Rho",
+    "\u03A4": "Greek Capital Letter Tau",
+    "\u03A5": "Greek Capital Letter Upsilon",
+    "\u03A7": "Greek Capital Letter Chi",
+    "\u03F2": "Greek Lunate Sigma Symbol",
+    "\u03F3": "Greek Letter Yot",
+    "\u03F9": "Greek Capital Lunate Sigma Symbol",
+    # Cyrillic Alphabet
+    "\u0405": "Cyrillic Capital Letter Dze",
+    "\u0406": "Cyrillic Capital Letter Byelorussian-Ukrainian I",
+    "\u0408": "Cyrillic Capital Letter Je",
+    "\u0410": "Cyrillic Capital Letter A",
+    "\u0412": "Cyrillic Capital Letter Ve",
+    "\u0415": "Cyrillic Capital Letter Ie",
+    "\u0417": "Cyrillic Capital Letter Ze",
+    "\u041D": "Cyrillic Capital Letter En",
+    "\u041E": "Cyrillic Capital Letter O",
+    "\u0420": "Cyrillic Capital Letter Er",
+    "\u0421": "Cyrillic Capital Letter Es",
+    "\u0422": "Cyrillic Capital Letter Te",
+    "\u0425": "Cyrillic Capital Letter Ha",
+    "\u04AE": "Cyrillic Capital Letter Straight U",
+    "\u04C0": "Cyrillic Letter Palochka",
+    "\u04CF": "Cyrillic Small Letter Palochka",
+}
+
 def _check_bidi_unicode(line: str, line_num: int) -> list[lsp.Diagnostic]:
     """Checks for Unicode characters defined above"""
     diagnostics = []
@@ -189,6 +228,37 @@ def _check_invisible_unicode_(line: str, line_num: int) -> list[lsp.Diagnostic]:
     return diagnostics
 
 
+def _check_homoglyph_unicode(line: str, line_num: int) -> list[lsp.Diagnostic]:
+    """Checks for Homoglyph Unicode characters defined above"""
+    diagnostics = []
+    for char, name in HOMOGLYPH_UNICODE_CHARS.items():
+        index = line.find(char)
+        while index != -1:
+            # Check what kind of attack 
+            single_comment_index = line.find('#')
+            return_index = line.find("return")
+            multi_comment_index = line.find("\'\'\'")
+            if single_comment_index != -1 or multi_comment_index != -1:
+                msg = f"Trojan Source Comment Out Attack Detected.\nHomoglyph Unicode Chracter {name} detected. An attacker has introduced a Homoglyph Unicode character to comment code and disturb logic."
+            elif return_index != -1:
+                msg = f"Trojan Source Early Return Attack Detected.\nHomoglyph Unicode Character {name} detected. An attacker has introduced a Homoglyph Unicode character to return your code early."
+            else:
+                msg = f"Homoglyph Unicode Character {name} detected.\nAn attacker as introduced a Homoglyph Unicode Character to disturb code logic."
+
+            # Create diagnostic
+            position = lsp.Position(line=line_num, character=index)
+            diagnostic = lsp.Diagnostic(
+                range=lsp.Range(start=position, end=position),
+                message=msg,
+                severity=lsp.DiagnosticSeverity.Error,
+                source=TOOL_MODULE
+            )
+            diagnostics.append(diagnostic)
+            index = line.find(char, index + 1) 
+
+    return diagnostics
+
+
 def _linting_helper(document: workspace.Document) -> list[lsp.Diagnostic]:
     # diagnostics are the messages that appear they are objects that are put into a list and returned at the end here
     diagnostics: list[lsp.Diagnostic] = []
@@ -197,6 +267,7 @@ def _linting_helper(document: workspace.Document) -> list[lsp.Diagnostic]:
     for i, line in enumerate(lines):
         diagnostics.extend(_check_bidi_unicode(line, i))
         diagnostics.extend(_check_invisible_unicode_(line, i))
+        diagnostics.extend(_check_homoglyph_unicode(line, i)) 
 
     # return the list
     return diagnostics
