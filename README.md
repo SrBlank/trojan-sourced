@@ -7,6 +7,7 @@
 4. npm 8.3.0
 5. Python extension for VS Code
 6. Typescript + Webpack Problem Matcher extension for VS Code
+7. ESLint for VS Code
 
 ## Dependencies
 1. For `lsp_server.py`:
