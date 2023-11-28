@@ -1,6 +1,8 @@
-# Instructions for setting up and testing extension
+# Trojan Sourced
+The `trojan-sourced` VSCode extension is dedicated to detecting malicious code manipulations caused by Unicode characters. These Unicode characters can be invisible, appear like normal characters, and manipulate code without the programmer being aware of the fact. These attacks have been deemed `Trojan Source` attacks from the paper `Trojan Source: Invisble Vulnerabilities` by Boucher, Nicholas and Ross Anderson [1]. Our VSCode extension proposes a solution by detecting each attack proposed in the paper and making the user aware of the fact. We further expand on the paper as well by expanding on the list of malicouous unicode characters.
 
-## Minimum Requirements
+
+## Requirements
 1. VS Code 1.64.0
 2. Python 3.8
 3. node 14.19.0
@@ -26,12 +28,20 @@ pynput
 These steps can also be done inside a virtual environment if conflict errors occur. 
 
 ## Project Functionality
-The functions performing malicious code detection are implemented in `bundle/tool/lsp_server.py` between lines 111 and 270. 
+The functions performing malicious code detection are implemented in `bundle/tool/lsp_server.py` between lines 107 and 295.
 There are three detecting functions:
-1.  `_check_bidi_unicode` detects characters that change the direction of a certain text string.
-2.  `_check_invisible_unicode_` detects characters that are invisible to the human eye but are read by the compiler.
-3.  `_check_homoglph_unicode` detects characters that look almost identical to regular letter characters but have different Unicode values.
+1.  `_check_bidi_unicode` detects Bidirectional Unicode characters. These characters will change the original lay out of text on runtime cauing program logic to change. In particular, there are two kinds of attacks this function detects:
+
+    1. `Early Return Attack`: When a return statement is moved to be called early.
+    1. `Comment Out Attack`: When a comment is moved to remove if statements or change code logic in general.
+1.  `_check_invisible_unicode_` detects characters that are invisible to the human eye but are read by the compiler. This attack can cause functions that are not meant to be called, be called.
+1.  `_check_homoglph_unicode` detects characters that look almost identical to regular letter characters but have different Unicode values. Similar to the invisible attack, functions that are not meant to be called can appear normal in the calling as it looks the same.
 
 Additionally, `_linting_helper` passes each line in open documents in the current workspace into the above functions, then return a list of lsp.Diagnostic objects, informing the user what the malicious code is trying to do. 
 
+The functions above are implemented and functional. Unfortuantely, the only porition of the project we were not able to accomplish was giving the end user the code with the attack removed. The attack is highlighted and an error is thrown along with a diagnostic message.
 
+## References
+[1] Boucher, Nicholas, and Ross Anderson. "Trojan Source:   Invisible Vulnerabilities." 32nd USENIX
+Security Symposium (USENIX Security 23), 2023, Anaheim, CA, USENIX Association,
+https://arxiv.org/abs/2111.00169.
