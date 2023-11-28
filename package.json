@@ -10,21 +10,24 @@
     },
     "publisher": "SrBlank",
     "license": "MIT",
-    "homepage": "https://github.com/<my-github>/<my-extension-project>",
+    "homepage": "https://github.com/SrBlank/trojan-sourced",
     "repository": {
         "type": "git",
-        "url": "https://github.com/<my-github>/<my-extension-project>.git"
+        "url": "https://github.com/SrBlank/trojan-sourced.git"
     },
     "bugs": {
-        "url": "https://github.com/<my-github>/<my-extension-project>/issues"
+        "url": "https://github.com/SrBlank/trojan-sourced/issues"
     },
+    "icon": "icon.png",
     "galleryBanner": {
         "color": "#1e415e",
         "theme": "dark"
     },
     "keywords": [
         "python",
-        "unisource"
+        "unisource",
+        "trojan",
+        "trojan source"
     ],
     "engines": {
         "vscode": "^1.78.0"
