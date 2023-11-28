@@ -105,12 +105,15 @@ def did_close(params: lsp.DidCloseTextDocumentParams) -> None:
 
 
 """
-COMPUTER SYSTEMS SECURITY RELEVANT PORTION
+COMPUTER SYSTEMS SECURITY RELEVANT LINTING PORTION
 
-TODO Figure out how to ouput the original code with Bidi Characters removed to the user
-TODO Maybe figure out what the stuff above does like OPEN CLOSE and SAVE
-TODO Publish this extension publically before the due date that would be a flex for the prof and for recruiters 
+Authors:
+Saad Rafiq, Ngoc Huynh, Anderson Le, Camryn Schaecher, Laiba Janat 
 """
+
+# Unicode character dictionary declarations for searching
+
+# Bidirectional Unicode Characters
 BIDI_UNICODE_CHARS = {
     "\u202A": "LRE",
     "\u202B": "RLE",
@@ -123,6 +126,7 @@ BIDI_UNICODE_CHARS = {
     "\u2069": "PDI",
 }
 
+# Inivsible Unicode Characters
 INVISIBLE_UNICODE_CHARS = {
     "\u200B": "Zero-Width Space ZWSP)",
     "\u200C": "Zero-Width Non-Joiner (ZWNJ)",
@@ -138,6 +142,7 @@ INVISIBLE_UNICODE_CHARS = {
     "\u2062": "Invisible Times (IT)"
 }
 
+# Homoglyphic Unicode Characters
 HOMOGLYPH_UNICODE_CHARS = {
     # Greek Alphabet
     "\u037F": "Greek Capital Letter Yot",
@@ -177,20 +182,28 @@ HOMOGLYPH_UNICODE_CHARS = {
     "\u04CF": "Cyrillic Small Letter Palochka",
 }
 
+
 def _check_bidi_unicode(line: str, line_num: int) -> list[lsp.Diagnostic]:
-    """Checks for Unicode characters defined above"""
+    """Checks for Bidirectional Unicode characters from the BIDI_UNICODE_CHARS dictionary
+    
+    function checks for Early Return Attack, Comment Out Attack, and any other Bidirectional characters
+    """
     diagnostics = []
+    # Iterate through each item in the dictionary searching the line for the character
     for char, name in BIDI_UNICODE_CHARS.items():
         index = line.find(char)
+
         while index != -1:
-            # Check what kind of attack 
+            # Identify the type of attack based on the context in the line
             single_comment_index = line.find('#')
             return_index = line.find("return")
             multi_comment_index = line.find("\'\'\'")
-            if single_comment_index != -1 or multi_comment_index != -1:
-                msg = f"Trojan Source Comment Out Attack Detected.\nBidi Unicode Chracter {name} detected. An attacker has introduced a Bidirectional Unicode character to comment code and disturb logic."
-            elif return_index != -1:
+
+            # Create message for attack
+            if return_index != -1:
                 msg = f"Trojan Source Early Return Attack Detected.\nBidi Unicode Character {name} detected. An attacker has introduced a Bidirectional Unicode character to return your code early."
+            elif single_comment_index != -1 or multi_comment_index != -1:
+                msg = f"Trojan Source Comment Out Attack Detected.\nBidi Unicode Chracter {name} detected. An attacker has introduced a Bidirectional Unicode character to comment code and disturb logic."
             else:
                 msg = f"Bidi Unicode Character {name} detected.\nAn attacker as introduced a Bidirectional Unicode Character to disturb code logic."
 
@@ -205,15 +218,21 @@ def _check_bidi_unicode(line: str, line_num: int) -> list[lsp.Diagnostic]:
             diagnostics.append(diagnostic)
             index = line.find(char, index + 1) 
 
+    # Return the list of diagnostics for this line
     return diagnostics
 
 
 def _check_invisible_unicode_(line: str, line_num: int) -> list[lsp.Diagnostic]:
-    """Checks for Unicode characters defined above"""
+    """Checks for invisible Unicode characters from the INVISIBLE_UNICODE_CHARS dictionary
+    
+    function checks for invisible attack type
+    """
     diagnostics = []
+    # Iterate through each item in the dictionary searching the line for the character
     for char, name in INVISIBLE_UNICODE_CHARS.items():
         index = line.find(char)
         while index != -1:
+            # if found create diagnostic with message
             position = lsp.Position(line=line_num, character=index)
             diagnostic = lsp.Diagnostic(
                 range=lsp.Range(start=position, end=position),
@@ -229,21 +248,17 @@ def _check_invisible_unicode_(line: str, line_num: int) -> list[lsp.Diagnostic]:
 
 
 def _check_homoglyph_unicode(line: str, line_num: int) -> list[lsp.Diagnostic]:
-    """Checks for Homoglyph Unicode characters defined above"""
+    """Checks for Homoglyphic Unicode characters from the HOMOGLYPH_UNICODE_CHARS dictionary
+    
+    function checks for Homoglyph attack type
+    """
     diagnostics = []
+    # Iterate through each item in the dictionary searching the line for the character
     for char, name in HOMOGLYPH_UNICODE_CHARS.items():
         index = line.find(char)
         while index != -1:
-            # Check what kind of attack 
-            single_comment_index = line.find('#')
-            return_index = line.find("return")
-            multi_comment_index = line.find("\'\'\'")
-            if single_comment_index != -1 or multi_comment_index != -1:
-                msg = f"Trojan Source Comment Out Attack Detected.\nHomoglyph Unicode Chracter {name} detected. An attacker has introduced a Homoglyph Unicode character to comment code and disturb logic."
-            elif return_index != -1:
-                msg = f"Trojan Source Early Return Attack Detected.\nHomoglyph Unicode Character {name} detected. An attacker has introduced a Homoglyph Unicode character to return your code early."
-            else:
-                msg = f"Homoglyph Unicode Character {name} detected.\nAn attacker as introduced a Homoglyph Unicode Character to disturb code logic."
+            # Create message
+            msg = f"Trojan Source Homoglyph Attack Detected. \nHomoglyphic Unicode character {name} detected. An attacker as introduced a Homoglyph Unicode Character to disturb code logic."
 
             # Create diagnostic
             position = lsp.Position(line=line_num, character=index)
@@ -256,23 +271,28 @@ def _check_homoglyph_unicode(line: str, line_num: int) -> list[lsp.Diagnostic]:
             diagnostics.append(diagnostic)
             index = line.find(char, index + 1) 
 
+    # Return the list of diagnostics for this line
     return diagnostics
 
 
 def _linting_helper(document: workspace.Document) -> list[lsp.Diagnostic]:
-    # diagnostics are the messages that appear they are objects that are put into a list and returned at the end here
+    # Diagnostics are the messages that appear they are objects that are put into a list and returned at the end here
     diagnostics: list[lsp.Diagnostic] = []
-    # get the lines of the document
+    # Get the lines of the document
     lines = document.lines
+    # Lint each line
     for i, line in enumerate(lines):
         diagnostics.extend(_check_bidi_unicode(line, i))
         diagnostics.extend(_check_invisible_unicode_(line, i))
         diagnostics.extend(_check_homoglyph_unicode(line, i)) 
 
-    # return the list
+    # Return the list
     return diagnostics
 
 
+"""
+END OF RELEVANT LINTING PORTION
+"""
 
 # **********************************************************
 # Required Language Server Initialization and Exit handlers.
