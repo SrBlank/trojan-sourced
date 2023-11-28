@@ -31,6 +31,7 @@ There are three detecting functions:
 1.  `_check_bidi_unicode` detects characters that change the direction of a certain text string.
 2.  `_check_invisible_unicode_` detects characters that are invisible to the human eye but are read by the compiler.
 3.  `_check_homoglph_unicode` detects characters that look almost identical to regular letter characters but have different Unicode values.
+
 Additionally, `_linting_helper` passes each line in open documents in the current workspace into the above functions, then return a list of lsp.Diagnostic objects, informing the user what the malicious code is trying to do. 
 
 
